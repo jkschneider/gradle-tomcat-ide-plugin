@@ -1,0 +1,54 @@
+allprojects {
+    apply plugin: 'nebula'
+    apply plugin: 'idea'
+}
+
+subprojects {   
+    apply plugin: 'groovy'
+    group = "com.netflix.nebula.embedded-tomcat-runner"
+
+    configurations {
+        compile.extendsFrom tomcat
+    }
+
+    dependencies {
+        compile gradleApi()
+        testCompile('com.netflix.nebula:nebula-test:2.2.1') {
+            exclude group: 'org.codehaus.groovy'
+        }
+    }
+
+    contacts {
+        'benjamin.muschko@gmail.com' {
+            moniker 'Benjamin Muschko'
+            github 'bmuschko'
+        }
+    }
+
+    task setupWebRootTmpDir {
+        File webRoot = new File(System.getProperty('user.home'), 'tmp/embeddedTomcat/integtest/WebRoot')
+        ext.tmpWebDir = webRoot
+
+        doLast {
+            if(!webRoot.exists()) {
+                if (!webRoot.mkdirs()) {
+                    throw new GradleException("Failed to set up temporary directory '$webRoot.canonicalPath'")
+                }
+            }
+        }
+    }
+
+    task cleanupWebRootTmpDir {
+        doLast {
+            if(setupWebRootTmpDir.tmpWebDir.exists()) {
+                setupWebRootTmpDir.tmpWebDir.delete()
+            }
+        }
+    }
+
+    test {
+        dependsOn setupWebRootTmpDir
+        finalizedBy cleanupWebRootTmpDir
+        systemProperty 'tomcatWebAppBaseDir', setupWebRootTmpDir.tmpWebDir
+    }
+}

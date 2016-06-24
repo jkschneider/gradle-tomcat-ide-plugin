@@ -1,0 +1,3 @@
+rootProject.name = 'embedded-tomcat-runner'
+include 'embedded', 'tomcat7x', 'tomcat8x'
+
